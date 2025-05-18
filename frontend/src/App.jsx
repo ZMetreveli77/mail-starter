@@ -3,6 +3,7 @@ import {
   createRoutesFromElements,
   Route,
   RouterProvider,
+  Outlet,
   Navigate,
 } from "react-router";
 import { RootLayout } from "@/pages/RootLayout";
@@ -16,15 +17,13 @@ import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ComposeEmailPage } from "@/pages/ComposeEmailPage";
 
 const ProtectedRoute = () => {
-  const { initialLoading } = useContext(AuthContext);
+  const { user,initialLoading } = useContext(AuthContext);
 
   if (initialLoading) return null;
 
-  // TODO: if user is already logged in, return inner route outlet
-  // if ()
+  if (user) return <Outlet />;
 
-  // TODO: if user is NOT logged in, navigate to the login page
-  // if ()
+  return <Navigate to="/login" />;
 };
 
 const RedirectIfLoggedIn = () => {
@@ -32,26 +31,26 @@ const RedirectIfLoggedIn = () => {
 
   if (initialLoading) return null;
 
-  // TODO: if user is already logged in, navigate to the inbox page
-  // if ()
+  if (user) return <Navigate to="/c/inbox" />;
 
-  // TODO: if user is NOT logged in, return inner route outlet
-  // if ()
+  return <Outlet />;
 };
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<RootLayout />}>
+      
+      <Route element={<ProtectedRoute />}>
+        <Route index element={<Navigate to="c/inbox" />} />
+        <Route path="c/:emailCategory" element={<EmailListPage />} />
+        <Route path="c/:emailCategory/:emailId" element={<Email />} />
+        <Route path="compose" element={<ComposeEmailPage />} />
+      </Route>
 
-      {/* TODO: add <ProtectedRoute> layout route around these pages */}
-      <Route index element={<Navigate to="c/inbox" />} />
-      <Route path="c/:emailCategory" element={<EmailListPage />} />
-      <Route path="c/:emailCategory/:emailId" element={<Email />} />
-      <Route path="compose" element={<ComposeEmailPage />} />
-
-      {/* TODO: add <RedirectIfLoggedIn> layout route around these pages */}
-      <Route path="login" element={<LoginPage />} />
-      <Route path="register" element={<RegisterPage />} />
+      <Route element={<RedirectIfLoggedIn />}>
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+      </Route>
 
       <Route path="*" element={<NotFoundPage />} />
     </Route>

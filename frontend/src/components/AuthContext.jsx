@@ -11,8 +11,27 @@ export const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    // TODO: check if user is logged in. Once you know the status, 
-    // change initialLoading to false and save user in the state
+    const checkAuthStatus = async () => {
+      try {
+        const res = await fetch("/users/status", {
+          credentials: "include"
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data.user)
+        } else {
+          setUser(null)
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err)
+        setUser(null)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    checkAuthStatus()
   }, [])
 
   return (

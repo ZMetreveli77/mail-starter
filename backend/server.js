@@ -6,6 +6,8 @@ import cors from "cors"
 import dotenv from "dotenv"
 import morgan from "morgan"
 import { handleError } from "./middleware.js"
+import userRoutes from "./routes/userRoutes.js"
+import emailRoutes from "./routes/emailRoutes.js"
 
 dotenv.config({ path: "./config/.env" })
 
@@ -37,7 +39,8 @@ app.use(
   })
 )
 
-// TODO: Add /users and /emails routers (emailRoutes.js, userRoutes.js)
+app.use("/users", userRoutes)
+app.use("/emails", emailRoutes)
 
 app.use(handleError)
 
