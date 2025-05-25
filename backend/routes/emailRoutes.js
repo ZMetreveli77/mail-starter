@@ -7,7 +7,7 @@ import {
   getEmailCategory
 } from "../controllers/emailControllers.js"
 import { protectRoute, validateBody } from "../middleware.js"
-import { emailComposeSchema } from "../schemas/emailSchemas.js"
+import {  registerSchema, loginSchema, emailComposeSchema } from "../schema.js"
 
 export const emailRouter = Router()
 
@@ -21,3 +21,5 @@ emailRouter.get("/c/:mailbox", protectRoute, getEmailCategory)
 emailRouter.get("/:emailId", protectRoute, getEmail)
 emailRouter.patch("/:id", protectRoute, archiveEmail)
 emailRouter.delete("/:id", protectRoute, deleteEmail)
+
+export default emailRouter

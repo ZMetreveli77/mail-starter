@@ -14,3 +14,5 @@ userRouter.get("/status", protectRoute, getStatus)
 userRouter.post("/register", validateBody(registerSchema), register)
 userRouter.post("/login", validateBody(loginSchema), login)
 userRouter.delete("/logout", logout)
+
+export default userRouter

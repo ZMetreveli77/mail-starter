@@ -28,3 +28,10 @@ export const emailComposeSchema = object({
       return emails.every((email) => emailRegex.test(email.trim()))
     })
 })
+
+
+export default {
+  loginSchema,
+  registerSchema,
+  emailComposeSchema
+}
