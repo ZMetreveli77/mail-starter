@@ -10,12 +10,24 @@ import sentIcon from "@/assets/sent.svg"
 import logoutIcon from "@/assets/log-out.svg"
 import loginIcon from "@/assets/login.svg"
 import registerIcon from "@/assets/register.svg"
+import { useNavigate } from "react-router";
 
 export const RootLayout = () => {
+  const navigate = useNavigate();
   const { user, initialLoading, setUser } = useContext(AuthContext)
 
   const logoutUser = async () => {
-    // TODO: clear user state and redirect to the login page
+    try {
+      await fetch("/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setUser(null);
+      navigate("/login");
+    }
   }
 
   return (
@@ -60,7 +72,7 @@ export const RootLayout = () => {
             </ul>
             <div className="flex items-center gap-4">
               <h1 className="text-lg font-bold hidden md:block">
-                {/* TODO: show user email */}
+                {user?.email}
               </h1>
               <Button variant="outline" onClick={logoutUser}>
                 <span className="hidden md:inline-block">Log out</span>

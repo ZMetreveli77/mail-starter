@@ -7,16 +7,16 @@ export const createEmail = asyncHandler(async (req, res) => {
   // (we cal also have a single email without any commas)
   const { recipients, subject, body } = req.body
 
-  // TODO: transfer recipients STRING into a LIST of email strings using .split
-  const emails = []
+
+  const emails = recipients.split(",").map(email => email.trim())
 
   const recipientUsers = await User.find({ email: { $in: emails } })
 
   const email = await Email.create({
-    // TODO: save email fields
-    // sender (logged in user id)
-    // recipients: (recipientUsers BUT only ids, you can use map)
-    // subject, body
+     sender: req.user._id,
+     recipients: recipientUsers.map(u => u._id),
+     subject,
+     body
   })
 
   await email.save()
@@ -29,33 +29,30 @@ export const getEmailCategory = asyncHandler(async (req, res) => {
 
   switch (mailbox) {
     case "inbox":
-      // TODO: 
-      // find emails that are NOT archived
-      // and that have logged in user id in the recipient list (logged in user received email in inbox)
-      // then sort by newest emails and populate sender & email fields using .populate method
-      
-      // emails = 
-      
-      break
-    case "sent":
-      // TODO: 
-      // find emails that the logged in user sent
-      // then sort by newest emails and populate sender & email fields using .populate method
-      
-      // emails = 
-      
-      break
-    case "archived":
-      // TODO: 
-      // find emails that ARE archived
-      // and that have logged in user id in the recipient list (logged in user received email in inbox)
-      // then sort by newest emails and populate sender & email fields using .populate method
-      
-      // emails = 
-      
-      break
-    default:
-      return res.status(400).json({ error: "Invalid mailbox" })
+    emails = await Email.find({
+      archived: false,
+      recipients: req.user._id
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender recipients")
+    break
+  case "sent":
+    emails = await Email.find({
+      sender: req.user._id
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender recipients")
+    break
+  case "archived":
+    emails = await Email.find({
+      archived: true,
+      recipients: req.user._id
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender recipients")
+    break
+  default:
+    return res.status(400).json({ error: "Invalid mailbox" })
   }
 
   res.json(emails)
@@ -66,14 +63,11 @@ export const getEmail = asyncHandler(async (req, res) => {
   let email
 
   try {
-    email = await Email.findOne({
-      _id: emailId,
-      // VERY IMPORTANT to check that the email we're getting
-      // with <emailId> is in the logged in user's inbox or the logged in user sent it
-      // otherwise, it's someone else's email and we shouldn't be able to see it
-      $or: [{ recipients: req.user._id }, { sender: req.user._id }]
-    })
-    // TODO: populate sender and recipients ids using.populate method
+     email = await Email.findOne({
+     _id: emailId,
+     $or: [{ recipients: req.user._id }, { sender: req.user._id }]
+     }).populate("sender recipients")
+
   } catch (e) {
     console.log(e.stack)
     res.status(400).json({ message: e.message })
@@ -86,9 +80,19 @@ export const archiveEmail = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { archived } = req.body
 
-  // TODO: find email by <id>, change archived status, save and return it
-  
-  return res.json()
+  const email = await Email.findOne({
+  _id: id,
+  recipients: req.user._id
+  })
+
+  if (!email) {
+  return res.status(404).json({ message: "Email not found or unauthorized" })
+  }
+
+  email.archived = archived
+  await email.save()
+
+  return res.json(email)
 })
 
 export const deleteEmail = asyncHandler(async (req, res) => {

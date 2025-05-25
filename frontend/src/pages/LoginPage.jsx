@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { string, object } from "yup";
+import { useNavigate } from "react-router";
+import { useContext } from "react";
+import { AuthContext } from "@/components/AuthContext";
 
 const loginSchema = object({
   email: string()
@@ -15,21 +18,43 @@ const loginSchema = object({
 });
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext);
+
   const initialValues = {
     email: "",
     password: "",
   };
   const [err, setErr] = useState("");
 
-  const loginUser = async (loginValues) => {
-    // TODO: login user with <loginValues> and redirect to the inbox page
-    // if any error occurs, fill <err> state (use try/catch)
+  const loginUser = async (loginValues, { setSubmitting }) => {
+   try {
+      setErr("");
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(loginValues),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+
+      const user = await res.json();
+      setUser(user);
+      navigate("/c/inbox");
+    } catch (error) {
+      setErr(error.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="max-w-xs mx-auto my-4 flex flex-col gap-4">
-      {/* TODO: add initial values, onSubmit and validation schema */}
-      <Formik>
+      <Formik initialValues={initialValues} validationSchema={loginSchema} onSubmit={loginUser}>
         {(formikProps) => {
           return (
             <Form className="flex flex-col gap-4">

@@ -33,13 +33,27 @@ export const ComposeEmailPage = () => {
   };
 
   const sendEmail = async (emailValues) => {
-    // TODO: send a new email with <emailValues>
+     try {
+    const res = await fetch("/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(emailValues),
+    });
+
+    if (!res.ok) throw new Error("Failed to send email");
+
+    resetForm();
+    alert("Email sent!");
+  } catch (err) {
+    console.error("Email sending failed", err);
+    alert("Failed to send email.");
+  }
   };
 
   return (
     <div>
-      {/* TODO: add initial values, onSubmit and validation schema */}
-      <Formik>
+      <Formik   initialValues={initialValues}  validationSchema={emailComposeSchema} onSubmit={sendEmail}>
         {(formik) => {
           return (
             <Form

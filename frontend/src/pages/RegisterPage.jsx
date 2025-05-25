@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { string, ref, object } from "yup";
+import { useNavigate } from "react-router";
+import { useContext } from "react";
+import { AuthContext } from "@/components/AuthContext";
 
 const registerSchema = object({
   email: string()
@@ -18,6 +21,8 @@ const registerSchema = object({
 });
 
 export const RegisterPage = () => {
+  const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext);
   const initialValues = {
     email: "",
     password: "",
@@ -25,15 +30,34 @@ export const RegisterPage = () => {
   };
   const [err, setErr] = useState("");
 
-  const registerUser = async (registerValues) => {
-    // TODO: register user with <registerValues> and redirect to the inbox page
-    // if any error occurs, fill <err> state (use try/catch)
+  const registerUser = async (registerValues, { setSubmitting }) => {
+    try {
+      setErr("");
+      const res = await fetch("/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(registerValues),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+
+      const user = await res.json();
+      setUser(user);
+      navigate("/c/inbox");
+    } catch (error) {
+      setErr(error.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="max-w-xs mx-auto my-4">
-      {/* TODO: add initial values, onSubmit and validation schema */}
-      <Formik>
+      <Formik initialValues={initialValues}  validationSchema={registerSchema} onSubmit={registerUser}>
         {(formikProps) => {
           return (
             <Form className="flex flex-col gap-4">
